@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inventory Intelligence — Step 05: Compare forecasts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=League+Spartan:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#F1F0E7; --card:#FAF9F3; --ink:#112C16; --muted:#5E6D5C; --soft:#BBCBC4;
+  --teal:#038A8B; --line:#D9D6C6; --bar-hi:#112C16; --bar-lo:#BBCBC4;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1F12; --card:#142A1A; --ink:#F1F0E7; --muted:#A9B9AD; --soft:#35523D;
+    --teal:#34B9BA; --line:#27412E; --bar-hi:#F1F0E7; --bar-lo:#35523D;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1F12; --card:#142A1A; --ink:#F1F0E7; --muted:#A9B9AD; --soft:#35523D;
+  --teal:#34B9BA; --line:#27412E; --bar-hi:#F1F0E7; --bar-lo:#35523D;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'League Spartan',Arial,sans-serif;font-size:18px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding:40px 24px 72px}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:24px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 6px}
+h1{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:clamp(40px,7vw,72px);line-height:1.02;margin:0;letter-spacing:.005em}
+.sub{margin:0;color:var(--muted);max-width:34ch}
+section.step{padding-top:48px}
+.step-head{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.num{font-family:'Anton',Impact,sans-serif;font-size:clamp(56px,9vw,96px);line-height:1;color:var(--soft)}
+h2{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:clamp(30px,5vw,46px);margin:0;line-height:1.1}
+.lede{font-size:20px;color:var(--muted);max-width:60ch;margin:12px 0 0}
+.grid{display:grid;grid-template-columns:1fr;gap:20px;margin-top:28px}
+@media (min-width:860px){ .grid{grid-template-columns:1fr 1fr} .wide{grid-column:1 / -1} }
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px}
+.card h3{font-size:22px;margin:0 0 4px;font-weight:700}
+.kicker{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:0 0 6px}
+.cap{font-size:16px;color:var(--muted);margin:14px 0 0}
+.bars{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+.row{display:grid;grid-template-columns:150px 1fr 96px;align-items:center;gap:12px;font-size:16px}
+@media (max-width:560px){ .row{grid-template-columns:104px 1fr 76px;font-size:14px} }
+.track{height:20px;background:transparent;border-radius:4px}
+.fill{height:100%;border-radius:4px;background:var(--bar-lo)}
+.fill.hi{background:var(--bar-hi)}
+.val{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.val b{color:var(--ink)}
+.stack{display:flex;height:46px;border-radius:8px;overflow:hidden;margin-top:18px;border:1px solid var(--line)}
+.stack div{display:flex;align-items:center;padding:0 14px;font-size:16px;font-weight:700;white-space:nowrap}
+.seg-hi{background:var(--bar-hi);color:var(--bg)}
+.seg-lo{background:var(--bar-lo);color:var(--ink)}
+.legend{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:15px;color:var(--muted);margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:3px 14px;font-size:15px;color:var(--muted)}
+.chip b{color:var(--ink)}
+.tablewrap{overflow-x:auto;margin-top:14px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:16px}
+th{text-align:left;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:2px solid var(--ink)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+td.clash{font-weight:700;color:var(--teal)}
+.callout{margin-top:28px;background:var(--ink);color:var(--bg);border-radius:14px;padding:22px 26px;font-size:20px;font-weight:500}
+.callout b{color:var(--bg)}
+
+.sec{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:34px 0 0}
+.srcgrid{display:grid;grid-template-columns:1fr;gap:16px;margin-top:14px}
+@media (min-width:860px){ .srcgrid{grid-template-columns:repeat(3,1fr)} }
+.src p{margin:0;font-size:16px;color:var(--muted)}
+.src .big{font-family:'Anton',Impact,sans-serif;font-size:42px;line-height:1;color:var(--ink);margin:16px 0 2px}
+.note{margin-top:16px;font-size:16px;color:var(--muted)}
+ol.flow{list-style:none;margin:14px 0 0;padding:0}
+ol.flow li{display:grid;grid-template-columns:60px 1fr;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+ol.flow li:last-child{border-bottom:none}
+.fn{font-family:'Anton',Impact,sans-serif;font-size:34px;line-height:1;color:var(--soft)}
+.ft b{display:block;font-size:19px;margin-bottom:2px}
+.ft span{font-size:16px;color:var(--muted)}
+
+.nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.nav a{border:1px solid var(--ink);border-radius:999px;padding:4px 16px;font-size:15px;font-weight:700;color:var(--ink);text-decoration:none}
+.nav a:hover{background:var(--ink);color:var(--bg)}
+.chain{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-top:18px}
+.chain .n{font-family:'Anton',Impact,sans-serif;font-size:60px;line-height:1;color:var(--ink)}
+.chain .n.hit{color:var(--teal)}
+.chain .t{font-size:15px;color:var(--muted);max-width:19ch;margin-top:4px}
+.chain .a{font-size:32px;color:var(--teal);line-height:1.4;padding-top:6px}
+.strip{display:grid;grid-template-columns:120px repeat(15,1fr);gap:4px;align-items:center;min-width:560px}
+.strip .yr{font-size:13px;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.strip .nm{font-size:15px;font-weight:700}
+.cell{height:24px;border-radius:4px;background:var(--bar-lo);opacity:.35}
+.cell.v{background:var(--bar-hi);opacity:1}
+.cell.s{background:transparent;border:2px dashed var(--bar-hi);opacity:1}
+.key{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:12px}
+.key i{display:inline-block;width:16px;height:16px;border-radius:3px;vertical-align:-3px;margin-right:6px;background:var(--bar-lo);opacity:.35}
+.key i.v{background:var(--bar-hi);opacity:1}
+.key i.s{background:transparent;border:2px dashed var(--bar-hi);opacity:1}
+.back{margin:18px 0 0;font-size:15px}.back a{color:var(--teal);font-weight:700;text-decoration:none}.back a:hover{text-decoration:underline}.steps{display:grid;grid-template-columns:1fr;gap:16px;margin-top:28px}@media (min-width:860px){.steps{grid-template-columns:1fr 1fr}}a.stepcard{display:block;text-decoration:none;color:var(--ink)}a.stepcard:hover{border-color:var(--ink)}.stepcard .num{display:block;margin-bottom:6px}
+
+.sqs{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:18px}
+.sq{border-radius:12px;padding:18px 6px 10px;text-align:center;background:var(--bar-hi);color:var(--bg)}
+.sq.opp{background:transparent;border:2px solid var(--bar-hi);color:var(--ink)}
+.sq .ar{font-size:30px;font-weight:700;line-height:1;letter-spacing:.12em}
+.sq .ql{font-size:13px;margin-top:8px;opacity:.9}
+.zrow{display:grid;grid-template-columns:76px 1fr 56px;align-items:center;gap:10px;font-size:15px;margin-top:6px}
+.zt{position:relative;height:18px}
+.zt::before{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.5}
+.zb{position:absolute;top:0;height:100%;background:var(--bar-lo);border-radius:3px}
+.zb.hi{background:var(--bar-hi)}
+.zv{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.zrow.hi{font-weight:700}
+.hl td{background:rgba(3,138,139,.13);font-weight:700}
+.num-r{text-align:right}th.num-r{text-align:right}
+footer{margin-top:44px;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <p class="eyebrow">BDM Healthware · Candidate challenge</p>
+    <h1>Inventory Intelligence</h1>
+  </div>
+  <p class="sub">Interactive charts for Step 05, by Xing Wang</p>
+</header>
+<p class="back"><a href="index.html">&larr; All steps</a></p>
+
+<section class="step" id="step-05">
+  <div class="step-head"><span class="num">05</span><h2>Compare forecasts</h2></div>
+  <p class="lede">The same forecast twice: once as it was, and once with one rule that skips the quarter hit by the shortage.</p>
+
+  <p class="sec">Data used</p>
+  <div class="srcgrid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+    <div class="card src">
+      <p class="kicker">CMS</p>
+      <h3>Medicaid State Drug Utilization</h3>
+      <p>Nephron's quarterly national totals, forecast one quarter at a time.</p>
+      <div class="big">11</div><p>quarters forecast and scored</p>
+    </div>
+    <div class="card src">
+      <p class="kicker">openFDA</p>
+      <h3>Drug Shortages</h3>
+      <p>The shortage record that points to Nephron's lowest quarter, flagged in Step 03.</p>
+      <div class="big">1</div><p>flagged quarter: 2023 Q1</p>
+    </div>
+  </div>
+
+  <p class="sec">What I did in the code</p>
+  <div class="card" style="margin-top:14px">
+    <ol class="flow">
+      <li><span class="fn">1</span><div class="ft"><span>Set the flagged quarter to 2023 Q1, Nephron's lowest quarter from Step 03.</span></div></li>
+      <li><span class="fn">2</span><div class="ft"><span>Wrote the baseline forecast, Model C: each quarter's forecast is the previous quarter's actual value.</span></div></li>
+      <li><span class="fn">3</span><div class="ft"><span>Wrote the shortage-aware forecast, Model E: the same, except that when the previous quarter is the flagged one, it goes back one more quarter.</span></div></li>
+      <li><span class="fn">4</span><div class="ft"><span>Forecast all 11 quarters both ways and scored them with the same errors, MAE and MAPE.</span></div></li>
+    </ol>
+  </div>
+
+  <p class="sec">What I found</p>
+  <div class="grid">
+
+    <div class="card wide">
+      <p class="kicker">The rule in action</p>
+      <h3>Only one quarter changes: 2023 Q2</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Model</th><th>Base quarter used</th><th class="num-r">Forecast</th><th class="num-r">Error vs actual (112,316)</th></tr></thead>
+          <tbody>
+            <tr><td>Baseline (Model C)</td><td>2023 Q1, the flagged quarter</td><td class="num-r">80,607</td><td class="num-r">28.2%</td></tr>
+            <tr class="hl"><td>Shortage-aware (Model E)</td><td>2022 Q4, skipping the flagged quarter</td><td class="num-r">133,173</td><td class="num-r">18.6%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="cap">2023 Q2 is the only forecast that used 2023 Q1 as its base, so it is the only one the rule changes.</p>
+    </div>
+
+    <div class="card wide">
+      <p class="kicker">All 11 forecast quarters</p>
+      <h3>Everything else stays the same</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Quarter</th><th class="num-r">Actual</th><th class="num-r">Model C</th><th class="num-r">Error</th><th class="num-r">Model E</th><th class="num-r">Error</th></tr></thead>
+          <tbody id="ctable"></tbody>
+        </table>
+      </div>
+      <p class="cap">Neither model can improve the forecast into 2023 Q1 itself, which is 65.2% off either way. No simple method can predict a shock before it happens.</p>
+    </div>
+
+    <div class="card wide">
+      <p class="kicker">Overall score</p>
+      <h3>A small gain, in one place</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Model</th><th class="num-r">MAE (units)</th><th class="num-r">MAPE</th></tr></thead>
+          <tbody id="mtable"></tbody>
+        </table>
+      </div>
+      <p class="cap">The gain looks modest because it sits in a single quarter. It is a targeted, explainable improvement, not a general gain in accuracy.</p>
+    </div>
+
+  </div>
+
+  <div class="callout">One quarter changes, and its error falls from <b>28.2% to 18.6%</b>. Step 06 tests whether that is more than luck.</div>
+  <p class="note">The flagged quarter was picked from the same series being forecast, which is why Step 06 also tries every other candidate quarter.</p>
+</section>
+
+<footer>Sources: openFDA Drug Shortages and NDC Directory; CMS State Drug Utilization Data 2022–2025. Numbers come from the project notebook's last run.</footer>
+</div>
+
+<script>
+(function(){
+  var units = [266427.717,161788.617,140874.617,133173.114,80606.699,112316.005,113943.267,129909.606,185717.500,184296.965,274844.383,250797.552,248085.250,207986.590,176851.270];
+  var labels = []; for (var y = 2022; y <= 2025; y++) for (var q = 1; q <= 4; q++) { if (y === 2025 && q === 4) break; labels.push(y + " Q" + q); }
+  var FLAG = 4;                                   // 2023 Q1
+  function n0(x){ return Math.round(x).toLocaleString("en-US"); }
+  var rows = "", maeC = 0, maeE = 0, mapeC = 0, mapeE = 0, N = 0;
+  for (var i = 4; i < units.length; i++) {
+    var a = units[i], fc = units[i-1], base = (i-1 === FLAG) ? i-2 : i-1, fe = units[base];
+    var ec = Math.abs(a - fc), ee = Math.abs(a - fe), pc = ec / a * 100, pe = ee / a * 100;
+    maeC += ec; maeE += ee; mapeC += pc; mapeE += pe; N++;
+    var hl = (fc !== fe) ? ' class="hl"' : '';
+    rows += '<tr'+hl+'><td>'+labels[i]+'</td><td class="num-r">'+n0(a)+'</td><td class="num-r">'+n0(fc)+'</td><td class="num-r">'+pc.toFixed(1)+'%</td><td class="num-r">'+n0(fe)+'</td><td class="num-r">'+pe.toFixed(1)+'%</td></tr>';
+  }
+  var ct = document.getElementById("ctable"); if (ct) ct.innerHTML = rows;
+  var mt = document.getElementById("mtable");
+  if (mt) mt.innerHTML =
+    '<tr><td>Baseline (Model C)</td><td class="num-r">'+n0(maeC/N)+'</td><td class="num-r">'+(mapeC/N).toFixed(2)+'%</td></tr>' +
+    '<tr class="hl"><td>Shortage-aware (Model E)</td><td class="num-r">'+n0(maeE/N)+'</td><td class="num-r">'+(mapeE/N).toFixed(2)+'%</td></tr>';
+})();
+</script>
+</body>
+</html>
