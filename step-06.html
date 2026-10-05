@@ -113,6 +113,26 @@ ol.flow li:last-child{border-bottom:none}
 .zrow.hi{font-weight:700}
 .hl td{background:rgba(3,138,139,.13);font-weight:700}
 .num-r{text-align:right}th.num-r{text-align:right}
+
+.vc{display:flex;align-items:flex-end;gap:6px;min-width:560px;margin-top:18px}
+.vc .col{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0}
+.vc .bw{height:170px;display:flex;align-items:flex-end;width:100%}
+.vc .bar{width:100%;border-radius:4px 4px 0 0;background:var(--bar-lo)}
+.vc .bar.hi{background:var(--bar-hi)}
+.vc .bar.bt{background:var(--teal)}
+.vc .v{font-size:11px;color:var(--muted);margin-bottom:3px;white-space:nowrap}
+.vc .l{font-size:11px;color:var(--muted);margin-top:6px;white-space:nowrap}
+.vc .l.hi{color:var(--ink);font-weight:700}
+.zb.bt{background:var(--teal)}
+.zrow.bt{font-weight:700}
+.case{border-top:2px solid var(--ink);margin-top:44px;padding-top:6px}
+.case h2{font-size:clamp(26px,4vw,38px)}
+.q{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:26px 0 4px}
+.txt{font-size:18px;margin:6px 0 0;max-width:72ch}
+.txt b{font-weight:700}
+.legend2{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:10px}
+.legend2 i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px;background:var(--bar-lo)}
+.legend2 i.hi{background:var(--bar-hi)}.legend2 i.bt{background:var(--teal)}
 footer{margin-top:44px;font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
 </style>
 </head>
@@ -130,26 +150,36 @@ footer{margin-top:44px;font-size:14px;color:var(--muted);border-top:1px solid va
 
 <section class="step" id="step-06">
   <div class="step-head"><span class="num">06</span><h2>Check it holds up</h2></div>
-  <p class="lede">A result from one drug and one quarter could be luck. I tested it three ways: against every other quarter, on two more drugs, and across the whole Medicaid system.</p>
+  <p class="lede">A result from one drug and one quarter could be luck. I tested it four ways: against every other quarter, on a deliberately different drug (Case 2), on a similar one (Case 3), and across the whole Medicaid system.</p>
+
+  <div class="card" style="margin-top:24px">
+    <p class="kicker">In one minute</p>
+    <ol class="flow">
+      <li><span class="fn">1</span><div class="ft"><b>Main case, Nephron</b><span>Flagging 2023 Q1 ranks first among 11 candidate quarters. Nine of the other ten make the forecast worse.</span></div></li>
+      <li><span class="fn">2</span><div class="ft"><b>Case 2, Lisdexamfetamine (Solco)</b><span>It does <b>not</b> hold. This is an industry-wide allocation shortage, with no &ldquo;before&rdquo; period in the data. Details below.</span></div></li>
+      <li><span class="fn">3</span><div class="ft"><b>Case 3, Rifapentine (Sanofi-Aventis)</b><span>It holds. A single-manufacturer shortage on an unrelated drug gives the same quarter and the same result.</span></div></li>
+      <li><span class="fn">4</span><div class="ft"><b>The whole system</b><span>Total Medicaid prescriptions peaked in 2023 Q1, so the dips are not a Medicaid-wide artifact.</span></div></li>
+    </ol>
+  </div>
 
   <p class="sec">Data used</p>
   <div class="srcgrid">
     <div class="card src">
       <p class="kicker">openFDA</p>
       <h3>Drug Shortages</h3>
-      <p>The shortage records for the two additional drugs, Rifapentine and Lisdexamfetamine.</p>
-      <div class="big">2</div><p>more drugs tested</p>
+      <p>The shortage records for Lisdexamfetamine and Rifapentine.</p>
+      <div class="big">90</div><p>Lisdexamfetamine records found</p>
     </div>
     <div class="card src">
       <p class="kicker">openFDA</p>
       <h3>NDC Directory</h3>
       <p>Rifapentine's package codes, to find which one Medicaid reports under.</p>
-      <div class="big">2</div><p>package codes checked</p>
+      <div class="big">2</div><p>candidate package codes</p>
     </div>
     <div class="card src">
       <p class="kicker">CMS</p>
       <h3>Medicaid State Drug Utilization</h3>
-      <p>Quarterly totals for each drug, and prescriptions for all drugs together.</p>
+      <p>Quarterly totals for each drug, plus prescriptions for all drugs together.</p>
       <div class="big">15</div><p>quarters for Rifapentine</p>
     </div>
   </div>
@@ -157,65 +187,151 @@ footer{margin-top:44px;font-size:14px;color:var(--muted);border-top:1px solid va
   <p class="sec">What I did in the code</p>
   <div class="card" style="margin-top:14px">
     <ol class="flow">
-      <li><span class="fn">1</span><div class="ft"><span>Flagged each of the 11 candidate quarters in turn, re-ran the forecast, and ranked them by how much each one improved the average error.</span></div></li>
-      <li><span class="fn">2</span><div class="ft"><span>Repeated the whole comparison on a second drug, Rifapentine: found its shortage record, found which package code Medicaid reports under, added the two reporting channels, then ran Model C against Model E and the same ranking.</span></div></li>
-      <li><span class="fn">3</span><div class="ft"><span>Added up prescriptions for every drug in each quarter, to see whether 2023 Q1 was low across the whole system.</span></div></li>
-      <li><span class="fn">4</span><div class="ft"><span>Ran the same ranking on a third drug, Lisdexamfetamine (Solco), where the result did not hold.</span></div></li>
+      <li><span class="fn">1</span><div class="ft"><span>Flagged each of the 11 candidate quarters in Nephron's series in turn, re-ran the forecast, and ranked them by how much each one improved the average error.</span></div></li>
+      <li><span class="fn">2</span><div class="ft"><span>Case 2: searched openFDA for Lisdexamfetamine shortages, picked Solco as the representative manufacturer, pulled its quarterly Medicaid totals, ran the baseline forecast and the same ranking.</span></div></li>
+      <li><span class="fn">3</span><div class="ft"><span>Case 3: found Rifapentine's shortage record, checked which of two package codes Medicaid reports under, added the two reporting channels, then ran Model C against Model E and the same ranking.</span></div></li>
+      <li><span class="fn">4</span><div class="ft"><span>Added up prescriptions for every drug in each quarter, to see whether 2023 Q1 was low across the whole system.</span></div></li>
     </ol>
   </div>
 
-  <p class="sec">What I found</p>
-  <div class="grid">
+  <!-- ============ MAIN CASE ============ -->
+  <div class="case">
+    <p class="kicker">Main case · Nephron (Albuterol)</p>
+    <h2>Is 2023 Q1 really special?</h2>
+    <p class="txt">The rule skips one flagged quarter. If any quarter would have done as well, the result would be a coincidence. So I flagged <b>every</b> quarter that could serve as a forecast base, one at a time, and measured how the average error changed.</p>
+    <div class="card" style="margin-top:16px">
+      <div id="rn" role="img" aria-label="Improvement in average error when each candidate quarter is flagged, Nephron"></div>
+      <p class="cap">Improvement in average error (MAPE points) when each quarter is flagged. Baseline 19.86%; flagging 2023 Q1 gives 18.98%. It ranks #1 of 11. The next best is almost zero (+0.05), and nine of the other ten make the forecast worse.</p>
+    </div>
+  </div>
 
-    <div class="card wide">
-      <p class="kicker">Nephron · every candidate quarter</p>
-      <h3>Only 2023 Q1 clearly improves the forecast</h3>
-      <div id="rn" role="img" aria-label="Improvement in average error when each of 11 quarters is flagged, Nephron"></div>
-      <p class="cap">Improvement in average error (MAPE points) when each quarter is flagged. Baseline 19.86%; flagging 2023 Q1 gives 18.98%. It ranks #1 of 11. The next best is almost zero, and nine of the other ten make the forecast worse.</p>
+  <!-- ============ CASE 2 ============ -->
+  <div class="case">
+    <p class="kicker">Case 2 · Lisdexamfetamine (Solco)</p>
+    <h2>Where it does not hold</h2>
+
+    <p class="q">What this case is</p>
+    <p class="txt">openFDA has <b>90</b> shortage records for Lisdexamfetamine capsules, <b>33</b> of them marked Limited Availability, from several manufacturers (Rhodes, Sun, Hikma and Solco among them). Most give the same reason: &ldquo;Shortage of an active ingredient&rdquo;. So this is not one company's supply problem. Many manufacturers were short at the same time. I picked it on purpose as a contrasting test.</p>
+
+    <p class="q">Which manufacturer I tracked</p>
+    <p class="txt">Solco (package code 43547060410). Its stated reason matches four of the five companies I looked at, so it is representative of the main shortage type here.</p>
+
+    <p class="q">What the data looks like</p>
+    <div class="card" style="margin-top:10px">
+      <div class="tablewrap"><div id="cs" class="vc" role="img" aria-label="Solco quarterly Medicaid units, 2023 Q3 to 2025 Q3"></div></div>
+      <div class="legend2"><span><i class="hi"></i>2024 Q1, the obvious low</span></div>
+      <p class="cap">Units reimbursed per quarter. Only nine quarters, and the first is 2023 Q3. Medicaid records start right around when this shortage was first reported, so there is <b>no &ldquo;before&rdquo; period</b>: no normal level to compare against, and none to roll back to. The series also swings widely, from 3,663 to 126,360.</p>
     </div>
 
-    <div class="card wide">
-      <p class="kicker">Rifapentine · a different drug and manufacturer</p>
-      <h3>The same quarter ranks #1 again</h3>
-      <div id="rr" role="img" aria-label="Improvement in average error when each of 11 quarters is flagged, Rifapentine"></div>
-      <p class="cap">Same method, run on a separate drug without changing anything. Baseline 22.58%; flagging 2023 Q1 gives 20.71%. It ranks #1 of 11, and the next best improves less than half as much.</p>
-    </div>
-
-    <div class="card wide">
-      <p class="kicker">All Medicaid drugs together</p>
-      <h3>2023 Q1 was the system-wide peak, not a dip</h3>
-      <p class="cap" style="margin-top:8px">If prescriptions had fallen everywhere in 2023 Q1, the two dips could be a Medicaid-wide data artifact. They did not: total prescriptions peaked that quarter. Nephron and Rifapentine both dipped against the overall trend, which makes each drug's dip more notable, not less. 2023 Q1 is also independently documented as a ten-year high for US drug shortages (ASHP data).</p>
-    </div>
-
-    <div class="card wide">
-      <p class="kicker">Lisdexamfetamine (Solco) · where it did not hold</p>
-      <h3>An industry-wide allocation shortage behaves differently</h3>
-      <div class="chain">
-        <div><div class="n">+234.33</div><div class="t">2023 Q4: the best flag, but a high quarter</div></div>
-        <div class="a"></div>
-        <div><div class="n">&minus;14.86</div><div class="t">2024 Q1: the obvious low, ranked last</div></div>
-      </div>
-      <p class="cap">Numbers are MAPE points. Only nine quarters of data, none before the shortage, and a near-zero 2024 Q1 (3,663 units) inflates the baseline error to 479.54%. This shortage hit the whole industry through allocation, not one company's supply, which is a different mechanism from the one this method is built for.</p>
-    </div>
-
-    <div class="card wide">
-      <p class="kicker">Three cases, honestly reported</p>
+    <p class="q">The baseline forecast</p>
+    <div class="card" style="margin-top:10px">
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Case</th><th>Shortage type</th><th>Result</th></tr></thead>
+          <thead><tr><th>Quarter</th><th class="num-r">Actual</th><th class="num-r">Forecast (last quarter)</th><th class="num-r">Error</th></tr></thead>
+          <tbody id="st"></tbody>
+        </table>
+      </div>
+      <p class="cap">Average error (MAPE) is <b>479.54%</b>. Almost all of that is one quarter: 2024 Q1 is only 3,663 units after 126,360 the quarter before, so a forecast that is off by about 123,000 units shows up as a 3,349.6% error. That is an artifact of MAPE on a series that touches near zero, not a sign the method failed.</p>
+    </div>
+
+    <p class="q">The same test as the main case</p>
+    <div class="card" style="margin-top:10px">
+      <div id="rs" role="img" aria-label="Improvement in average error when each candidate quarter is flagged, Solco"></div>
+      <div class="legend2"><span><i class="bt"></i>best flag</span><span><i class="hi"></i>the obvious low point</span></div>
+      <p class="cap">Eight candidate quarters. The pattern is the opposite of the main case. The best quarter to flag is <b>2023 Q4</b>, a high point (+234.33), while <b>2024 Q1</b>, the obvious low, ranks <b>last</b> (&minus;14.86).</p>
+    </div>
+
+    <p class="q">Why +234.33 does not mean much</p>
+    <p class="txt">Flagging 2023 Q4 changes exactly one forecast: the one for 2024 Q1, which now starts from 2023 Q3 (57,691 units) instead of 2023 Q4 (126,360). Its error falls from 3,349.6% to 1,475.0%, and that single change moves the average by 234 points. It reflects the near-zero 2024 Q1 value, not anything about the shortage.</p>
+
+    <p class="q">Verdict</p>
+    <p class="txt">The method does <b>not</b> generalise to allocation-type, industry-wide shortages. That is a real boundary on where the main finding applies. With only nine quarterly points this case cannot say more; daily data is where it could be tested properly.</p>
+  </div>
+
+  <!-- ============ CASE 3 ============ -->
+  <div class="case">
+    <p class="kicker">Case 3 · Rifapentine (Sanofi-Aventis)</p>
+    <h2>The same result on an unrelated drug</h2>
+
+    <p class="q">What this case is</p>
+    <p class="txt">Priftin (rifapentine) 150 mg tablets, made by a single company, Sanofi-Aventis. The shortage record is fully &ldquo;Resolved&rdquo;. A single-manufacturer shortage is structurally closer to the Nephron case than Lisdexamfetamine is.</p>
+
+    <p class="q">Finding the right drug code</p>
+    <p class="txt">The product is sold as a carton holding 3 blister packs of 8 tablets each, and each level has its own 11-digit code. I checked both against Medicaid to see which one is actually reported.</p>
+    <div class="card" style="margin-top:10px">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Level</th><th>Code</th><th class="num-r">Medicaid rows</th><th>What the rows contain</th></tr></thead>
           <tbody>
-            <tr><td>Nephron (Albuterol)</td><td>Single manufacturer</td><td class="clash">Supported, ranked #1 of 11</td></tr>
-            <tr><td>Rifapentine</td><td>Single manufacturer</td><td class="clash">Independently replicated, #1 of 11</td></tr>
-            <tr><td>Solco (Lisdexamfetamine)</td><td>Industry-wide allocation</td><td>Not supported</td></tr>
+            <tr class="hl"><td>Outer carton</td><td>00088210224</td><td class="num-r">30</td><td>All 15 quarters, nothing suppressed</td></tr>
+            <tr><td>Inner blister pack</td><td>00088210201</td><td class="num-r">2</td><td>Both suppressed</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="cap">Medicaid reports under the carton code, so that is the one I used. The two reporting channels are added together for each quarter.</p>
+    </div>
+
+    <p class="q">What the data looks like</p>
+    <div class="card" style="margin-top:10px">
+      <div class="tablewrap"><div id="cr" class="vc" role="img" aria-label="Rifapentine quarterly Medicaid units, 2022 Q1 to 2025 Q3"></div></div>
+      <div class="legend2"><span><i class="hi"></i>2023 Q1</span></div>
+      <p class="cap">Units reimbursed per quarter. 2023 Q1 is the lowest of the 15 quarters: 14,219, down from 20,523 the quarter before and back up to 30,662 the quarter after.</p>
+    </div>
+
+    <p class="q">With and without shortage awareness</p>
+    <div class="card" style="margin-top:10px">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Quarter</th><th class="num-r">Actual</th><th class="num-r">Model C</th><th class="num-r">Error</th><th class="num-r">Model E</th><th class="num-r">Error</th></tr></thead>
+          <tbody id="rt"></tbody>
+        </table>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Model</th><th class="num-r">MAE (units)</th><th class="num-r">MAPE</th></tr></thead>
+          <tbody id="rm"></tbody>
+        </table>
+      </div>
+      <p class="cap">Same rule as the main case. Only 2023 Q2 changes, because its forecast used 2023 Q1 as the base: its error falls from 53.6% to 33.1%. Neither model can improve the forecast into 2023 Q1 itself (44.3% either way).</p>
+    </div>
+
+    <p class="q">Was it just a Medicaid-wide dip?</p>
+    <div class="card" style="margin-top:10px">
+      <div class="tablewrap"><div id="cy" class="vc" role="img" aria-label="Total Medicaid prescriptions for all drugs, 2022 Q1 to 2025 Q3"></div></div>
+      <div class="legend2"><span><i class="hi"></i>2023 Q1</span></div>
+      <p class="cap">Prescriptions summed over every drug (millions). 2023 Q1 was the system-wide <b>peak</b>, not a dip, which rules out a Medicaid-wide data or policy artifact. Nephron and Rifapentine both dipped against the overall trend. 2023 Q1 is also documented as a ten-year high for US drug shortages overall (ASHP data).</p>
+    </div>
+
+    <p class="q">The same test as the main case</p>
+    <div class="card" style="margin-top:10px">
+      <div id="rr" role="img" aria-label="Improvement in average error when each candidate quarter is flagged, Rifapentine"></div>
+      <p class="cap">Baseline 22.58%; flagging 2023 Q1 gives 20.71%. It ranks <b>#1 of 11</b> (+1.87). The next best, 2025 Q1, improves less than half as much (+0.79), and seven of the other ten make the forecast worse.</p>
+    </div>
+
+    <p class="q">Verdict</p>
+    <p class="txt">The same quarter and the same rule, on a different drug and a different manufacturer, give the same result. That is what makes the Nephron finding more than one lucky series.</p>
+  </div>
+
+  <!-- ============ SUMMARY ============ -->
+  <div class="case">
+    <p class="kicker">Side by side</p>
+    <h2>Three cases, honestly reported</h2>
+    <div class="card" style="margin-top:16px">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Case</th><th>Shortage type</th><th class="num-r">Quarters of data</th><th class="num-r">Baseline MAPE</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Nephron (Albuterol)</td><td>Single manufacturer</td><td class="num-r">15</td><td class="num-r">19.86%</td><td class="clash">Flag 2023 Q1: 18.98%, ranks #1 of 11</td></tr>
+            <tr><td>2 · Solco (Lisdexamfetamine)</td><td>Industry-wide allocation</td><td class="num-r">9</td><td class="num-r">479.54%</td><td>Not supported: the obvious low ranks last of 8</td></tr>
+            <tr><td>3 · Rifapentine</td><td>Single manufacturer</td><td class="num-r">15</td><td class="num-r">22.58%</td><td class="clash">Flag 2023 Q1: 20.71%, ranks #1 of 11</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-
   </div>
 
   <div class="callout">The result held on two unrelated single-manufacturer shortages and did <b>not</b> hold on an industry-wide allocation shortage.</div>
-  <p class="note">Three drugs is a small set. With BDM's own transaction data, this boundary could be tested across many more cases.</p>
+  <p class="note">Three drugs is a small set. With BDM's own daily transaction data, this boundary could be tested across many more cases.</p>
 </section>
 
 <footer>Sources: openFDA Drug Shortages and NDC Directory; CMS State Drug Utilization Data 2022–2025. Numbers come from the project notebook's last run.</footer>
@@ -223,22 +339,89 @@ footer{margin-top:44px;font-size:14px;color:var(--muted);border-top:1px solid va
 
 <script>
 (function(){
-  function fmt(x){ return (x < 0 ? "\u2212" : "+") + Math.abs(x).toFixed(2); }
-  function draw(id, data){
+  function sgn(x){ return (x < 0 ? "\u2212" : "+") + Math.abs(x).toFixed(2); }
+  function n0(x){ return Math.round(x).toLocaleString("en-US"); }
+  function qlab(startY, startQ, i){ var k = startQ - 1 + i; return (startY + Math.floor(k/4)) + " Q" + (k%4 + 1); }
+  // ---- series from the notebook outputs ----
+  var neph = [266427.717,161788.617,140874.617,133173.114,80606.699,112316.005,113943.267,129909.606,185717.500,184296.965,274844.383,250797.552,248085.250,207986.590,176851.270];
+  var rif  = [26110,25307,29021,20523,14219,30662,43485,40488,39010,41651,45007,45056,29985,39225,50304];
+  var sol  = [57691,126360,3663,40780,87664,97615,124753,39134,62242];
+  var sys  = [181291419,191439068,195174216,197951518,203364497,197093937,193762883,188920669,188545619,180617274,183156680,183564466,184332895,178459857,181800689];
+  // ---- the notebook's flag test: MAPE when quarter 'flag' is skipped as a forecast base ----
+  function mapeFor(u, first, flag){
+    var tot = 0, n = 0;
+    for (var q = first; q < u.length; q++) {
+      var b = q - 1;
+      if (flag !== null && b === flag && b - 1 >= 0) b = b - 1;
+      tot += Math.abs(u[q] - u[b]) / u[q] * 100; n++;
+    }
+    return tot / n;
+  }
+  function ranking(u, first, cands, labelOf){
+    var base = mapeFor(u, first, null), out = [];
+    cands.forEach(function(c){ out.push([labelOf(c), base - mapeFor(u, first, c), c]); });
+    out.sort(function(a,b){ return b[1] - a[1]; });
+    return out;
+  }
+  function range(a,b){ var r=[]; for (var i=a;i<=b;i++) r.push(i); return r; }
+  function drawRank(id, data, hiLabel, btLabel){
     var el = document.getElementById(id); if (!el) return;
     var max = 0; data.forEach(function(d){ max = Math.max(max, Math.abs(d[1])); });
     var html = "";
-    data.forEach(function(d, i){
-      var hi = i === 0;
+    data.forEach(function(d){
+      var cls = d[0] === hiLabel ? " hi" : (d[0] === btLabel ? " bt" : "");
       var w = Math.abs(d[1]) / max * 50;
       var pos = d[1] < 0 ? 'right:50%;width:'+w+'%' : 'left:50%;width:'+w+'%';
-      html += '<div class="zrow'+(hi?' hi':'')+'"><span>'+d[0]+'</span><div class="zt"><div class="zb'+(hi?' hi':'')+'" style="'+pos+'"></div></div><span class="zv">'+fmt(d[1])+'</span></div>';
+      html += '<div class="zrow'+cls+'"><span>'+d[0]+'</span><div class="zt"><div class="zb'+cls+'" style="'+pos+'"></div></div><span class="zv">'+sgn(d[1])+'</span></div>';
     });
     el.innerHTML = html;
   }
-  // improvement in MAPE points when each quarter is flagged, best first (from the robustness checks)
-  draw("rn", [["2023 Q1",0.88],["2024 Q2",0.05],["2023 Q3",-0.11],["2025 Q1",-0.12],["2023 Q4",-0.78],["2022 Q4",-0.87],["2024 Q4",-0.88],["2024 Q3",-1.54],["2025 Q2",-2.06],["2023 Q2",-2.53],["2024 Q1",-2.61]]);
-  draw("rr", [["2023 Q1",1.87],["2025 Q1",0.79],["2024 Q1",0.32],["2024 Q4",0.01],["2024 Q2",-0.53],["2024 Q3",-0.68],["2023 Q4",-0.70],["2023 Q3",-1.53],["2025 Q2",-1.67],["2023 Q2",-3.44],["2022 Q4",-5.43]]);
+  function drawCols(id, labels, vals, fmt, hiIdx){
+    var el = document.getElementById(id); if (!el) return;
+    var max = Math.max.apply(null, vals), html = "";
+    vals.forEach(function(v, i){
+      var hi = hiIdx.indexOf(i) >= 0;
+      html += '<div class="col"><div class="v">'+fmt(v)+'</div><div class="bw"><div class="bar'+(hi?' hi':'')+'" style="height:'+(v/max*100)+'%"></div></div><div class="l'+(hi?' hi':'')+'">'+labels[i]+'</div></div>';
+    });
+    el.innerHTML = html;
+  }
+  var kfmt = function(v){ return (v/1000).toFixed(1)+"k"; };
+  var mfmt = function(v){ return (v/1e6).toFixed(1)+"M"; };
+
+  // Nephron: every candidate quarter (indices 3..13), flag base 2023 Q1 = index 4
+  drawRank("rn", ranking(neph, 4, range(3,13), function(c){ return qlab(2022,1,c); }), "2023 Q1", null);
+  // Rifapentine: same
+  drawRank("rr", ranking(rif, 4, range(3,13), function(c){ return qlab(2022,1,c); }), "2023 Q1", null);
+  // Solco: 8 candidates (indices 0..7); highlight the obvious low (2024 Q1) and the best flag
+  var solRank = ranking(sol, 1, range(0,7), function(c){ return qlab(2023,3,c); });
+  drawRank("rs", solRank, "2024 Q1", solRank[0][0]);
+
+  // charts of the three series and the system-wide total
+  var solLabels = sol.map(function(_, i){ return qlab(2023,3,i); });
+  var rifLabels = rif.map(function(_, i){ return qlab(2022,1,i); });
+  drawCols("cs", solLabels, sol, kfmt, [2]);
+  drawCols("cr", rifLabels, rif, kfmt, [4]);
+  drawCols("cy", rifLabels, sys, mfmt, [4]);
+
+  // Solco baseline table
+  var sb = "", st = 0, sn = 0;
+  for (var q = 1; q < sol.length; q++) {
+    var e = Math.abs(sol[q] - sol[q-1]) / sol[q] * 100; st += e; sn++;
+    sb += '<tr'+(q===2?' class="hl"':'')+'><td>'+solLabels[q]+'</td><td class="num-r">'+n0(sol[q])+'</td><td class="num-r">'+n0(sol[q-1])+'</td><td class="num-r">'+e.toFixed(1)+'%</td></tr>';
+  }
+  var stb = document.getElementById("st"); if (stb) stb.innerHTML = sb;
+
+  // Rifapentine: Model C vs Model E
+  var rt = "", mC = 0, mE = 0, pC = 0, pE = 0, N = 0;
+  for (var i = 4; i < rif.length; i++) {
+    var a = rif[i], fc = rif[i-1], base = (i-1 === 4) ? i-2 : i-1, fe = rif[base];
+    var ec = Math.abs(a-fc), ee = Math.abs(a-fe), cc = ec/a*100, ce = ee/a*100;
+    mC += ec; mE += ee; pC += cc; pE += ce; N++;
+    rt += '<tr'+(fc !== fe ? ' class="hl"' : '')+'><td>'+rifLabels[i]+'</td><td class="num-r">'+n0(a)+'</td><td class="num-r">'+n0(fc)+'</td><td class="num-r">'+cc.toFixed(1)+'%</td><td class="num-r">'+n0(fe)+'</td><td class="num-r">'+ce.toFixed(1)+'%</td></tr>';
+  }
+  var rtb = document.getElementById("rt"); if (rtb) rtb.innerHTML = rt;
+  var rmb = document.getElementById("rm");
+  if (rmb) rmb.innerHTML = '<tr><td>Baseline (Model C)</td><td class="num-r">'+n0(mC/N)+'</td><td class="num-r">'+(pC/N).toFixed(2)+'%</td></tr><tr class="hl"><td>Shortage-aware (Model E)</td><td class="num-r">'+n0(mE/N)+'</td><td class="num-r">'+(pE/N).toFixed(2)+'%</td></tr>';
 })();
 </script>
 </body>
